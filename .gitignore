@@ -1,1 +1,2 @@
-printf ".DS_Store\n" > .gitignore
+.DS_Store
+
