@@ -1,0 +1,329 @@
+/* css/styles.css
+ *
+ * - Design theme:
+ *   Off-white background with earthy green accents
+ *
+ * - Visual goals:
+ *   Clean, readable, calm
+ *   Rounded edges on all containers
+ *   Subtle borders instead of heavy grid lines
+ */
+
+
+/* ===============================
+   Color system
+   =============================== */
+
+:root {
+  --color-background: #f6f7f4;      /* warm off-white */
+  --color-surface: #ffffff;         /* cards / tables */
+  --color-border: #d9ddd3;          /* soft neutral border */
+  --color-text-primary: #1f2a1f;    /* charcoal green-black */
+  --color-text-muted: #6b7766;      /* muted olive-gray */
+
+  --color-accent: #5f7f67;          /* earthy green */
+  --color-accent-hover: #4f6d57;
+
+  --color-danger: #b55a4a;          /* muted clay red */
+}
+
+
+/* ===============================
+   Base layout
+   =============================== */
+
+body {
+  margin: 0;
+  padding: 32px;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+#app_root {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+
+/* ===============================
+   Headings & text
+   =============================== */
+
+h1,
+h2 {
+  margin: 0 0 16px 0;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+h2 {
+  font-size: 22px;
+}
+
+p {
+  margin: 8px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+
+/* ===============================
+   Table layout
+   =============================== */
+
+.song_table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.song_table thead th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: #fafbf8;
+}
+
+.song_table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.song_table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.song_table tbody tr:hover {
+  background: #f1f4ef;
+}
+
+
+/* ===============================
+   Action buttons
+   =============================== */
+
+.song_table button {
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  margin-right: 6px;
+  color: var(--color-text-primary);
+}
+
+.song_table button:hover {
+  background: #e9eee7;
+}
+
+.song_table button[data-action="play"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.song_table button[data-action="play"]:hover {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.song_table button[data-action="delete"] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.song_table button[data-action="delete"]:hover {
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
+/* nav */
+
+.nav_bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.nav_brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--color-text-primary);
+}
+
+.nav_actions {
+  display: flex;
+  gap: 10px;
+}
+
+.nav_button {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+
+  color: var(--color-text-primary);
+}
+
+.nav_button:hover {
+  background: #e9eee7;
+}
+
+.nav_button_active {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+/* form */
+
+.form_view {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 18px 18px;
+}
+
+.form_view h2 {
+  margin: 0 0 14px 0;
+}
+
+.form_field {
+  margin-bottom: 14px;
+}
+
+.field_label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.form_view input[type="text"],
+.form_view input[type="number"] {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: #fbfcfa;
+  outline: none;
+}
+
+.form_view input[type="text"]:focus,
+.form_view input[type="number"]:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(95, 127, 103, 0.15);
+}
+
+.field_error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+.form_actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.primary_button,
+.secondary_button {
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.primary_button {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.primary_button:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.secondary_button {
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.secondary_button:hover {
+  background: #e9eee7;
+}
+
+/* stats */
+
+.stats_view {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 18px 18px;
+}
+
+.stats_view h2 {
+  margin: 0 0 14px 0;
+}
+
+.stats_card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.stat_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: #fbfcfa;
+}
+
+.stat_label {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stat_value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: right;
+}

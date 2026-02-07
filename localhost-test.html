@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localhost Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            min-width: 300px;
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .status {
+            font-size: 18px;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.loading {
+            background-color: #cfe2ff;
+            color: #084298;
+            border: 1px solid #b6d4fe;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .details {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        button {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Localhost Test</h1>
+        <div id="status" class="status loading">
+            <div class="spinner"></div>
+            Testing connection...
+        </div>
+        <div class="details">
+            <p id="message">Checking if localhost is running...</p>
+        </div>
+        <button onclick="testConnection()">Retry Test</button>
+    </div>
+
+    <script>
+        function testConnection() {
+            const statusDiv = document.getElementById('status');
+            const messageDiv = document.getElementById('message');
+            
+            statusDiv.className = 'status loading';
+            statusDiv.innerHTML = '<div class="spinner"></div>Testing connection...';
+            messageDiv.textContent = 'Checking if localhost is running...';
+
+            // Test connection with a simple fetch request
+            fetch('http://localhost', { method: 'HEAD', mode: 'no-cors' })
+                .then(response => {
+                    showSuccess();
+                })
+                .catch(error => {
+                    showError();
+                });
+
+            // Timeout after 5 seconds if no response
+            setTimeout(() => {
+                if (statusDiv.classList.contains('loading')) {
+                    showError();
+                }
+            }, 5000);
+        }
+
+        function showSuccess() {
+            const statusDiv = document.getElementById('status');
+            const messageDiv = document.getElementById('message');
+            
+            statusDiv.className = 'status success';
+            statusDiv.innerHTML = '✅ Connected!';
+            messageDiv.innerHTML = '<strong>Localhost is running!</strong><br><br>' +
+                'Server: ' + window.location.hostname + ':' + (window.location.port || '80') + '<br>' +
+                'Time: ' + new Date().toLocaleTimeString();
+        }
+
+        function showError() {
+            const statusDiv = document.getElementById('status');
+            const messageDiv = document.getElementById('message');
+            
+            statusDiv.className = 'status error';
+            statusDiv.innerHTML = '❌ Connection Failed';
+            messageDiv.innerHTML = '<strong>Localhost is not responding.</strong><br><br>' +
+                'Make sure XAMPP is running and the server is active.<br>' +
+                'Current host: ' + window.location.hostname + '<br>' +
+                'Time: ' + new Date().toLocaleTimeString();
+        }
+
+        // Run test on page load
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html>
