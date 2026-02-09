@@ -9,7 +9,19 @@
 // - POST   /api/songs.php              -> create, returns full dataset
 // - PUT    /api/songs.php?id=...       -> update, returns full dataset
 // - DELETE /api/songs.php?id=...       -> delete, returns full dataset
+// ------------------------------
+// CORS (so Netlify frontend can call this backend)
+// NOTE: "*" is fine for class/demo. In production you'd restrict it.
+// ------------------------------
+header('access-control-allow-origin: *');
+header('access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS');
+header('access-control-allow-headers: content-type');
 
+// handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(200);
+  exit;
+}
 header('content-type: application/json; charset=utf-8');
 
 $path = __DIR__ . '/../data/songs.json';

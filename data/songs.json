@@ -7,10 +7,10 @@
         "genre": "Rock",
         "duration_seconds": 245,
         "rating": 5,
-        "play_count": 27,
+        "play_count": 28,
         "id": "s_1770604428376_a09036",
         "created_at": 1770604428380,
-        "updated_at": 1770604436390
+        "updated_at": 1770611394399
     },
     {
         "title": "Whiskey, Beer, & Wine",
@@ -133,7 +133,8 @@
         "rating": 4,
         "playlist": "chill",
         "created_at": 1730073600000,
-        "updated_at": 1730073600000
+        "updated_at": 1770610528957,
+        "genre": "blues"
     },
     {
         "id": "s_008",
