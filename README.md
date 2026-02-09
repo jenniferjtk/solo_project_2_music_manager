@@ -11,73 +11,55 @@ This project extends the Solo Project 1 Collection Manager into a cloud-based, c
 
 The user interface and core functionality remain similar, but **data ownership has moved from the browser to a backend service**. All song data is stored and managed on the server using JSON files. The frontend communicates with the backend exclusively through HTTP requests.
 
-The purpose of this project is to demonstrate:
-- Client vs. server responsibilities
-- Clean API boundaries
-- JSON-based persistence
-- Real-world frontend/backend architecture
-
----
-
-## Architecture Summary
-
-This project follows a **separated frontend/backend architecture**.
-
-### Frontend
-- HTML, CSS, JavaScript
-- Hosted on Netlify
-- Uses `fetch()` to communicate with backend API routes
-- Contains no persistent data storage
-
-### Backend
-- Written in PHP
-- Runs locally using XAMPP
-- Stores all data in server-side JSON files
-- Implements full CRUD logic via HTTP routes
-
-Netlify does **not** support PHP execution. This is intentional for Solo Project 2 and is part of the learning objective.
+The purpose of this project is to demonstrate client vs. server responsibilities, clean API boundaries, JSON-based persistence, and a realistic frontend/backend architecture.
 
 ---
 
 ## Live Frontend (Netlify)
 
-Netlify URL: https://solo-project-2-music-manager.netlify.app/
+Netlify URL:  
+https://solo-project-2-music-manager.netlify.app/
+
 The frontend loads correctly in an incognito/private browser window.
 
-Because Netlify cannot execute PHP, the frontend **cannot fully function without a running backend**. This is expected and explained below.
+Because Netlify cannot execute PHP, the frontend cannot fully function without a running backend. This behavior is expected for Solo Project 2 and is explained below.
 
 ---
 
-## Backend Execution
+## Backend Implementation
 
-The backend is hosted **locally** using XAMPP.
+**Backend language used:** PHP
 
-Backend base URL: http://localhost/solo_project_2_music_manager
-API endpoint:
-GET /api/songs.php
-POST /api/songs.php
-PUT /api/songs.php?id=SONG_ID
-DELETE /api/songs.php?id=SONG_ID
+The backend is written in PHP and runs locally using XAMPP. It exposes REST-style API routes that the frontend communicates with using `fetch()`.
 
-All data is persisted in /data/songs.json
+Backend base URL (local):  
+http://localhost/solo_project_2_music_manager
+
+API routes:
+- GET `/api/songs.php`
+- POST `/api/songs.php`
+- PUT `/api/songs.php?id=SONG_ID`
+- DELETE `/api/songs.php?id=SONG_ID`
+
+All CRUD operations are handled on the server and return JSON responses to the frontend.
+
+---
+
+## JSON Data Persistence
+
+All application data is persisted in a server-side JSON file:
+
+`/data/songs.json`
+
+The application starts with **at least 30 records** stored in this file. All create, update, and delete operations modify the JSON file directly on the server. The browser does not store or own the data.
 
 Data persists across:
 - Page refreshes
 - Browser sessions
 - CRUD operations
+- Different users/devices (when the backend is running)
 
----
-
-## Data Persistence
-
-Song data is stored in a JSON file on the server.
-
-- The application starts with **at least 30 records**
-- All create, update, and delete operations modify the JSON file
-- The browser does not store or own the data
-- Refreshing the page reloads data from the backend
-
-This satisfies the JSON persistence requirement for Solo Project 2.
+Refreshing the page reloads data from the backend, not from local storage.
 
 ---
 
@@ -86,18 +68,18 @@ This satisfies the JSON persistence requirement for Solo Project 2.
 ### List View
 - Displays songs in a table
 - Shows title, artist, album, duration, and play count
-- Includes paging with exactly 10 records per page
-- Next and Previous page navigation
+- Paging implemented with exactly 10 records per page
+- Next and Previous navigation controls
 - Current page indicator
 
 ### Add / Edit Form
-- Form validation on both client and server
+- Client-side and server-side validation
 - Required fields enforced
 - Validation errors displayed to the user
 
 ### Delete
-- Delete confirmation required before removal
-- Delete operation persists to backend JSON file
+- Delete confirmation required
+- Deletions persist to the backend JSON file
 
 ### Stats View
 - Displays total number of records
@@ -107,51 +89,45 @@ This satisfies the JSON persistence requirement for Solo Project 2.
 
 ## Paging Implementation
 
-Paging is implemented entirely on the frontend using data retrieved from the backend.
+Paging is implemented on the frontend using data retrieved from the backend.
 
-- Page size is fixed at 10 records
+- Fixed page size of 10 records
 - Paging updates correctly after add, edit, and delete operations
-- Navigation buttons are disabled at boundaries
+- Navigation buttons are disabled at page boundaries
 
 ---
 
 ## Validation
 
-Validation is implemented on both sides:
+Validation is implemented on both the client and server.
 
-### Client-side
+Client-side validation:
 - Input normalization
 - Required fields enforced
 - Numeric range validation
 
-### Server-side
+Server-side validation:
 - JSON body validation
 - Required fields enforced
-- Safe file handling
+- Safe file handling and error responses
 
-Invalid input is rejected and error messages are returned to the frontend.
+Invalid input is rejected and descriptive error messages are returned to the frontend.
 
 ---
 
 ## Why the Backend Is Not Publicly Hosted
 
-This project does **not** require public PHP hosting.
-
-Netlify cannot run PHP, and setting up public backend hosting is intentionally outside the scope of Solo Project 2.
-
-In a real production system, this application would be deployed using:
-- A PHP-capable hosting provider, or
-- A cloud service with proper backend infrastructure
-
-For this assignment:
-- The backend works locally
-- The frontend correctly calls backend APIs
-- The architecture and deployment strategy are clearly explained
+Netlify is only capable of serving static files such as HTML, CSS, and JavaScript, and it cannot execute PHP or run a server-side environment. Because of this, the PHP backend for this project runs locally using XAMPP, which is why the application cannot fully function when accessed through the Netlify URL alone. This limitation is intentional for Solo Project 2 and is meant to emphasize the separation between frontend and backend responsibilities rather than deployment complexity.
 
 ---
-## How it would be deployed in production
-Netlify is only capable of serving static files like HTML, CSS, and JavaScript, so it cannot execute PHP code or run a server-side environment. Because of this, the PHP backend for this project must run locally using XAMPP, which is why the application cannot fully function when the frontend is accessed on Netlify alone. In a real production environment, the frontend would still be hosted on a static hosting service like Netlify, while the backend would be deployed separately on a PHP-capable server or cloud platform, and the frontend would communicate with that server over HTTP. For this project, the focus is on understanding and implementing the architecture rather than setting up actual hosting.
+
+## How This Would Be Deployed in Production
+
+In a real production environment, the frontend would still be hosted on a static hosting platform like Netlify, while the backend would be deployed separately on a PHP-capable server or cloud hosting provider. The frontend would communicate with the backend over HTTP using the same API routes implemented in this project. Production deployment would involve proper hosting, security configuration, and environment management, which are intentionally outside the scope of this assignment.
+
+---
 
 ## Repository
 
-GitHub Repository: https://github.com/jenniferjtk/solo_project_2_music_manager
+GitHub Repository:  
+https://github.com/jenniferjtk/solo_project_2_music_manager
