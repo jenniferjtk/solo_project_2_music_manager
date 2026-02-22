@@ -1,3 +1,6 @@
+# THIS READ ME IS DEPRECIATED
+
+
 # Solo Project 2 – Music Manager (Cloud Collection Manager)
 
 CPSC 3750 – Web Application Development  
