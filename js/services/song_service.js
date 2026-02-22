@@ -45,7 +45,8 @@ export const song_service = {
       genre: normalized.genre,
       duration_seconds: normalized.duration_seconds,
       rating: Number.isFinite(normalized.rating) ? normalized.rating : null,
-      play_count: 0
+      play_count: 0,
+      image_url: normalized.image_url || null
     };
 
     const result = await api_service.create_song(create_payload);
@@ -74,7 +75,8 @@ export const song_service = {
       playlist: normalized.playlist,
       genre: normalized.genre,
       duration_seconds: normalized.duration_seconds,
-      rating: Number.isFinite(normalized.rating) ? normalized.rating : null
+      rating: Number.isFinite(normalized.rating) ? normalized.rating : null,
+      image_url: normalized.image_url || null
     };
 
     const result = await api_service.update_song(song_id, update_payload);

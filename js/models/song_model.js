@@ -58,7 +58,8 @@ export function normalize_song_input(raw_input) {
     playlist: to_trimmed_string(raw_input.playlist) || app_config.defaults.playlist,
     genre: to_trimmed_string(raw_input.genre) || app_config.defaults.genre,
     duration_seconds: to_number(raw_input.duration_seconds),
-    rating: to_number(raw_input.rating)
+    rating: to_number(raw_input.rating),
+    image_url: to_trimmed_string(raw_input.image_url)
   };
 }
 

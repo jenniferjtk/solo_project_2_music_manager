@@ -159,6 +159,14 @@ export function render_form_view({ mode, initial_values, validation_errors }) {
         error_message: errors.rating
       }),
 
+      render_text_input({
+        label: 'image url',
+        name: 'image_url',
+        value: safe_values.image_url,
+        placeholder: 'ex: https://example.com/cover.jpg',
+        error_message: errors.image_url
+      }),
+
       create_element('div', { class: 'form_actions' }, [
         create_element(
           'button',

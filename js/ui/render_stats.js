@@ -51,10 +51,11 @@ function render_stat_row(label, value) {
 //
 // - Parameters:
 //   statistics -> object from stats_service.get_song_statistics(songs)
+//   page_size  -> current page size (number) for rubric "current page size" stat
 //
 // - Returns:
 //   DOM element
-export function render_stats_view(statistics) {
+export function render_stats_view(statistics, page_size) {
   const safe_stats = statistics || {};
 
   const most_played_song = safe_stats.most_played_song;
@@ -79,12 +80,13 @@ export function render_stats_view(statistics) {
     create_element('h2', {}, ['stats']),
 
     create_element('div', { class: 'stats_card' }, [
-      render_stat_row('total songs', total_songs_text),
+      render_stat_row('total songs',          total_songs_text),
+      render_stat_row('current page size',    String(page_size || 10) + ' per page'),
       render_stat_row('total listening time', total_listening_time_text),
-      render_stat_row('most played song', most_played_song_text),
-      render_stat_row('most played artist', most_played_artist_text),
-      render_stat_row('most played album', most_played_album_text),
-      render_stat_row('average rating', average_rating_text)
+      render_stat_row('most played song',     most_played_song_text),
+      render_stat_row('most played artist',   most_played_artist_text),
+      render_stat_row('most played album',    most_played_album_text),
+      render_stat_row('average rating',       average_rating_text)
     ])
   ]);
 }

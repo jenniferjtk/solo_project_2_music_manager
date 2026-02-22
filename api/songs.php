@@ -2,7 +2,7 @@
 // api/songs.php
 //
 // purpose:
-// - CRUD for songs stored in ../data/songs.json
+// - CRUD for songs stored in MySQL via PDO
 //
 // api contract:
 // - GET    /api/songs.php              -> { ok: true, songs: [...] }
@@ -19,175 +19,199 @@ header('access-control-allow-headers: content-type');
 
 // handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-  http_response_code(200);
-  exit;
+    http_response_code(200);
+    exit;
 }
 header('content-type: application/json; charset=utf-8');
 
-$path = __DIR__ . '/../data/songs.json';
+require_once __DIR__ . '/db.php';
 
-function respond($status_code, $payload) {
-  http_response_code($status_code);
-  echo json_encode($payload);
-  exit;
+// ── helpers ─────────────────────────────────────────────────────────────────
+
+function respond(int $status_code, array $payload): void {
+    http_response_code($status_code);
+    echo json_encode($payload);
+    exit;
 }
 
-function read_songs($path) {
-  if (!file_exists($path)) {
-    // treat missing file as empty dataset (you can also choose to 500)
-    return [];
-  }
+function get_json_body(): ?array {
+    $raw = file_get_contents('php://input');
+    if ($raw === false || trim($raw) === '') return null;
 
-  $raw = file_get_contents($path);
-  if ($raw === false) {
-    respond(500, [ 'ok' => false, 'message' => 'failed to read songs.json' ]);
-  }
-
-  $data = json_decode($raw, true);
-
-  if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-    respond(500, [
-      'ok' => false,
-      'message' => 'songs.json contains invalid json',
-      'error' => json_last_error_msg()
-    ]);
-  }
-
-  if (!is_array($data)) return [];
-  return $data;
+    $data = json_decode($raw, true);
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        respond(400, ['ok' => false, 'message' => 'invalid json body', 'error' => json_last_error_msg()]);
+    }
+    return $data;
 }
 
-function write_songs($path, $songs) {
-  $json = json_encode($songs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-  if ($json === false) {
-    respond(500, [ 'ok' => false, 'message' => 'failed to encode json' ]);
-  }
-
-  $ok = file_put_contents($path, $json);
-  if ($ok === false) {
-  respond(500, [
-    'ok' => false,
-    'message' => 'failed to write songs.json',
-    'path' => $path,
-    'dir_writable' => is_writable(dirname($path)),
-    'file_exists' => file_exists($path),
-    'file_writable' => file_exists($path) ? is_writable($path) : null
-  ]);
-}
+function now_ms(): int {
+    return (int)round(microtime(true) * 1000);
 }
 
-function get_json_body() {
-  $raw = file_get_contents('php://input');
-  if ($raw === false || trim($raw) === '') return null;
-
-  $data = json_decode($raw, true);
-  if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-    respond(400, [ 'ok' => false, 'message' => 'invalid json body', 'error' => json_last_error_msg() ]);
-  }
-
-  return $data;
+function generate_id(): string {
+    return 's_' . now_ms() . '_' . bin2hex(random_bytes(3));
 }
 
-function now_ms() {
-  return round(microtime(true) * 1000);
+// Cast a raw DB row to the expected song shape so numeric fields arrive as
+// proper JS numbers (not strings) after json_encode.
+function row_to_song(array $row): array {
+    return [
+        'id'               => $row['id'],
+        'title'            => $row['title'],
+        'artist'           => $row['artist'],
+        'album'            => $row['album'],
+        'playlist'         => $row['playlist'],
+        'genre'            => $row['genre'],
+        'duration_seconds' => (int)$row['duration_seconds'],
+        'rating'           => $row['rating'] !== null ? (int)$row['rating'] : null,
+        'play_count'       => (int)$row['play_count'],
+        'image_url'        => $row['image_url'],
+        'created_at'       => (int)$row['created_at'],
+        'updated_at'       => (int)$row['updated_at'],
+    ];
 }
 
-function generate_id() {
-  // good enough for class project
-  return 's_' . now_ms() . '_' . bin2hex(random_bytes(3));
+function fetch_all_songs(PDO $db): array {
+    $stmt = $db->query('SELECT * FROM songs ORDER BY created_at DESC');
+    $rows = $stmt->fetchAll();
+    return array_map('row_to_song', $rows);
 }
 
-function find_index_by_id($songs, $id) {
-  for ($i = 0; $i < count($songs); $i++) {
-    if (isset($songs[$i]['id']) && $songs[$i]['id'] === $id) return $i;
-  }
-  return -1;
-}
+// ── routing ──────────────────────────────────────────────────────────────────
 
 $method = $_SERVER['REQUEST_METHOD'];
+$db     = get_db();
 
+// GET: list all songs
 if ($method === 'GET') {
-  $songs = read_songs($path);
-  respond(200, [ 'ok' => true, 'songs' => $songs ]);
+    $songs = fetch_all_songs($db);
+    respond(200, ['ok' => true, 'songs' => $songs]);
 }
 
-// POST: create
+// POST: create a new song
 if ($method === 'POST') {
-  $input = get_json_body();
-  if (!is_array($input)) {
-    respond(400, [ 'ok' => false, 'message' => 'missing json body' ]);
-  }
+    $input = get_json_body();
+    if (!is_array($input)) {
+        respond(400, ['ok' => false, 'message' => 'missing json body']);
+    }
 
-  $songs = read_songs($path);
+    $id         = generate_id();
+    $now        = now_ms();
+    $play_count = 0;
 
-  $new_song = $input;
+    $stmt = $db->prepare(
+        'INSERT INTO songs
+           (id, title, artist, album, playlist, genre, duration_seconds,
+            rating, play_count, image_url, created_at, updated_at)
+         VALUES
+           (:id, :title, :artist, :album, :playlist, :genre, :duration_seconds,
+            :rating, :play_count, :image_url, :created_at, :updated_at)'
+    );
 
-  // enforce server-side fields
-  $new_song['id'] = generate_id();
-  $new_song['created_at'] = now_ms();
-  $new_song['updated_at'] = now_ms();
+    $stmt->execute([
+        ':id'               => $id,
+        ':title'            => trim($input['title']     ?? ''),
+        ':artist'           => trim($input['artist']    ?? ''),
+        ':album'            => isset($input['album'])   ? trim($input['album'])    : null,
+        ':playlist'         => trim($input['playlist']  ?? 'unassigned'),
+        ':genre'            => trim($input['genre']     ?? 'unknown'),
+        ':duration_seconds' => (int)($input['duration_seconds'] ?? 0),
+        ':rating'           => isset($input['rating']) && $input['rating'] !== '' && $input['rating'] !== null
+                                   ? (int)$input['rating'] : null,
+        ':play_count'       => $play_count,
+        ':image_url'        => isset($input['image_url']) && trim($input['image_url']) !== ''
+                                   ? trim($input['image_url']) : null,
+        ':created_at'       => $now,
+        ':updated_at'       => $now,
+    ]);
 
-  // defaults if not provided
-  if (!isset($new_song['play_count'])) $new_song['play_count'] = 0;
-
-  array_unshift($songs, $new_song);
-
-  write_songs($path, $songs);
-  respond(200, [ 'ok' => true, 'songs' => $songs ]);
+    $songs = fetch_all_songs($db);
+    respond(200, ['ok' => true, 'songs' => $songs]);
 }
 
-// PUT: update
+// PUT: update an existing song
 if ($method === 'PUT') {
-  $id = isset($_GET['id']) ? $_GET['id'] : '';
-  if ($id === '') {
-    respond(400, [ 'ok' => false, 'message' => 'missing id' ]);
-  }
+    $id = isset($_GET['id']) ? trim($_GET['id']) : '';
+    if ($id === '') {
+        respond(400, ['ok' => false, 'message' => 'missing id']);
+    }
 
-  $input = get_json_body();
-  if (!is_array($input)) {
-    respond(400, [ 'ok' => false, 'message' => 'missing json body' ]);
-  }
+    $input = get_json_body();
+    if (!is_array($input)) {
+        respond(400, ['ok' => false, 'message' => 'missing json body']);
+    }
 
-  $songs = read_songs($path);
-  $idx = find_index_by_id($songs, $id);
+    // verify the song exists
+    $check = $db->prepare('SELECT id FROM songs WHERE id = :id');
+    $check->execute([':id' => $id]);
+    if (!$check->fetch()) {
+        respond(404, ['ok' => false, 'message' => 'song not found']);
+    }
 
-  if ($idx < 0) {
-    respond(404, [ 'ok' => false, 'message' => 'song not found' ]);
-  }
+    // build the SET clause from whitelisted fields only
+    $allowed = [
+        'title', 'artist', 'album', 'playlist', 'genre',
+        'duration_seconds', 'rating', 'play_count', 'image_url'
+    ];
 
-  $existing = $songs[$idx];
+    $set_parts = [];
+    $params    = [':id' => $id, ':updated_at' => now_ms()];
 
-  // keep id + created_at stable, update updated_at
-  $updated = array_merge($existing, $input);
-  $updated['id'] = $existing['id'];
-  if (isset($existing['created_at'])) $updated['created_at'] = $existing['created_at'];
-  $updated['updated_at'] = now_ms();
+    foreach ($allowed as $field) {
+        if (!array_key_exists($field, $input)) continue;
 
-  $songs[$idx] = $updated;
+        $placeholder = ':' . $field;
 
-  write_songs($path, $songs);
-  respond(200, [ 'ok' => true, 'songs' => $songs ]);
+        if ($field === 'rating') {
+            $params[$placeholder] = ($input[$field] !== null && $input[$field] !== '')
+                ? (int)$input[$field] : null;
+        } elseif ($field === 'duration_seconds' || $field === 'play_count') {
+            $params[$placeholder] = (int)$input[$field];
+        } elseif ($field === 'image_url') {
+            $val = isset($input[$field]) ? trim($input[$field]) : '';
+            $params[$placeholder] = $val !== '' ? $val : null;
+        } else {
+            $params[$placeholder] = trim((string)$input[$field]);
+        }
+
+        $set_parts[] = "`{$field}` = {$placeholder}";
+    }
+
+    if (empty($set_parts)) {
+        // nothing to update — still return current dataset
+        $songs = fetch_all_songs($db);
+        respond(200, ['ok' => true, 'songs' => $songs]);
+    }
+
+    $set_parts[] = '`updated_at` = :updated_at';
+    $sql = 'UPDATE songs SET ' . implode(', ', $set_parts) . ' WHERE id = :id';
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+
+    $songs = fetch_all_songs($db);
+    respond(200, ['ok' => true, 'songs' => $songs]);
 }
 
-// DELETE: remove
+// DELETE: remove a song
 if ($method === 'DELETE') {
-  $id = isset($_GET['id']) ? $_GET['id'] : '';
-  if ($id === '') {
-    respond(400, [ 'ok' => false, 'message' => 'missing id' ]);
-  }
+    $id = isset($_GET['id']) ? trim($_GET['id']) : '';
+    if ($id === '') {
+        respond(400, ['ok' => false, 'message' => 'missing id']);
+    }
 
-  $songs = read_songs($path);
-  $idx = find_index_by_id($songs, $id);
+    $check = $db->prepare('SELECT id FROM songs WHERE id = :id');
+    $check->execute([':id' => $id]);
+    if (!$check->fetch()) {
+        respond(404, ['ok' => false, 'message' => 'song not found']);
+    }
 
-  if ($idx < 0) {
-    respond(404, [ 'ok' => false, 'message' => 'song not found' ]);
-  }
+    $stmt = $db->prepare('DELETE FROM songs WHERE id = :id');
+    $stmt->execute([':id' => $id]);
 
-  array_splice($songs, $idx, 1);
-
-  write_songs($path, $songs);
-  respond(200, [ 'ok' => true, 'songs' => $songs ]);
+    $songs = fetch_all_songs($db);
+    respond(200, ['ok' => true, 'songs' => $songs]);
 }
 
-respond(405, [ 'ok' => false, 'message' => 'method not allowed' ]);
+respond(405, ['ok' => false, 'message' => 'method not allowed']);
