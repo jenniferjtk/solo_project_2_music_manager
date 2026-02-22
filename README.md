@@ -1,4 +1,4 @@
-# THIS READ ME IS DEPRECIATED
+ THIS READ ME IS DEPRECIATED
 
 
 # Solo Project 2 – Music Manager (Cloud Collection Manager)
