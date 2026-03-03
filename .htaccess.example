@@ -1,0 +1,4 @@
+SetEnv DB_HOST localhost
+SetEnv DB_NAME jennife1_musicManager
+SetEnv DB_USER PLACEHOLDER
+SetEnv DB_PASS PLACEHOLDER 
